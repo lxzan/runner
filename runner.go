@@ -15,7 +15,7 @@ type Runner struct {
 
 // num: max concurrent number
 // interval: interval of checking new task
-func NewRunner(num int64, interval time.Duration) *Runner {
+func New(num int64, interval time.Duration) *Runner {
 	o := &Runner{
 		q:        newQueue(),
 		maxNum:   num,

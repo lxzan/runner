@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewRunner(t *testing.T) {
-	r := NewRunner(10, 10*time.Millisecond)
+	r := New(10, 10*time.Millisecond)
 	for i := 0; i < 100; i++ {
 		tmp := i
 		r.Add(&Task{Do: func() error {
