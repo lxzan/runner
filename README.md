@@ -8,15 +8,23 @@ import "github.com/lxzan/runner"
 
 - Example:
 ```go
-r := runner.New(10, 10*time.Millisecond)
+ctx, cancel := context.WithCancel(context.Background())
+r := runner.New(ctx, 10, 10*time.Millisecond)
 for i := 0; i < 100; i++ {
-  tmp := i
-  task := &runner.Task{Do: func() error {
-    println(tmp)
-    time.Sleep(500 * time.Millisecond)
-    return nil
-  }}
-  r.Add(task)
+	tmp := i
+	r.Add(&runner.Task{Work: func() error {
+		println(tmp)
+		time.Sleep(500 * time.Millisecond)
+		return nil
+	}})
 }
-time.Sleep(5 * time.Second)
+
+r.OnClose = func() {
+	println("hello")
+}
+
+quit := make(chan os.Signal)
+signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+<-quit
+cancel()
 ```
