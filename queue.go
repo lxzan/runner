@@ -2,29 +2,25 @@ package runner
 
 import "sync"
 
-type Task struct {
-	Do func() error
-}
-
 type queue struct {
 	mutex *sync.Mutex
-	data  []*Task
+	data  []TaskInterface
 }
 
 func newQueue() *queue {
 	return &queue{
 		mutex: &sync.Mutex{},
-		data:  make([]*Task, 0),
+		data:  make([]TaskInterface, 0),
 	}
 }
 
-func (c *queue) push(t *Task) {
+func (c *queue) push(t TaskInterface) {
 	c.mutex.Lock()
 	c.data = append(c.data, t)
 	c.mutex.Unlock()
 }
 
-func (c *queue) front() (t *Task, ok bool) {
+func (c *queue) front() (t TaskInterface, ok bool) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -32,7 +28,7 @@ func (c *queue) front() (t *Task, ok bool) {
 	if length == 1 {
 		t = c.data[0]
 		ok = true
-		c.data = make([]*Task, 0)
+		c.data = make([]TaskInterface, 0)
 	} else if length > 1 {
 		t = c.data[0]
 		ok = true
