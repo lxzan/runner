@@ -58,8 +58,7 @@ func (c *Runner) run() {
 	for {
 		select {
 		case <-ticker.C:
-			num := atomic.LoadInt64(&c.curNum)
-			if num >= c.maxNum {
+			if atomic.LoadInt64(&c.curNum) >= c.maxNum {
 				continue
 			}
 
