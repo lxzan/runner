@@ -22,7 +22,6 @@ func (c *queue) push(t TaskInterface) {
 
 func (c *queue) front() (t TaskInterface, ok bool) {
 	c.mutex.Lock()
-	defer c.mutex.Unlock()
 
 	length := len(c.data)
 	if length == 1 {
@@ -36,6 +35,8 @@ func (c *queue) front() (t TaskInterface, ok bool) {
 	} else {
 		ok = false
 	}
+
+	c.mutex.Unlock()
 	return
 }
 
@@ -44,4 +45,12 @@ func (c *queue) len() int {
 	length := len(c.data)
 	c.mutex.Unlock()
 	return length
+}
+
+func (c *queue) clear() []TaskInterface {
+	c.mutex.Lock()
+	data := c.data
+	c.data = make([]TaskInterface, 0)
+	c.mutex.Unlock()
+	return data
 }

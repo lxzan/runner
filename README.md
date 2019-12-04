@@ -12,6 +12,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/lxzan/runner"
 	"os"
 	"os/signal"
@@ -22,10 +23,10 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	r := runner.New(ctx, 10, 10*time.Millisecond)
-	r.OnClose = func() {
-		println("hello")
+	r.OnClose = func(data []runner.TaskInterface) {
+		println(fmt.Sprintf("rest tasks: %d", len(data)))
 	}
-	
+
 	for i := 0; i < 100; i++ {
 		tmp := i
 		r.Add(&runner.Task{Work: func() error {
@@ -39,6 +40,6 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	cancel()
+	<-r.Wait
 }
-
 ```
