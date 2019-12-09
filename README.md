@@ -40,6 +40,6 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	cancel()
-	<-r.Wait
+	r.Wait()
 }
 ```
