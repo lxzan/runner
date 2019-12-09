@@ -25,14 +25,14 @@ type Runner struct {
 	interval time.Duration
 	ctx      context.Context
 
+	// wait for OnClose done
+	wait chan bool
+
 	// execute task error
 	OnError func(err error)
 
 	// syscall.SIGINT/SIGTERM, maybe you should backup data
 	OnClose func(data []TaskInterface)
-
-	// wait for OnClose done
-	Wait chan bool
 }
 
 // num: max concurrent number
@@ -44,7 +44,7 @@ func New(ctx context.Context, num int64, interval time.Duration) *Runner {
 		curNum:   0,
 		interval: interval,
 		ctx:      ctx,
-		Wait:     make(chan bool),
+		wait:     make(chan bool),
 	}
 	go o.run()
 
@@ -76,7 +76,7 @@ func (c *Runner) run() {
 			if c.OnClose != nil {
 				c.OnClose(c.queue.clear())
 			}
-			c.Wait <- true
+			c.wait <- true
 			return
 		}
 	}
@@ -84,4 +84,8 @@ func (c *Runner) run() {
 
 func (c *Runner) Add(t TaskInterface) {
 	c.queue.push(t)
+}
+
+func (c *Runner) Wait() {
+	<-c.wait
 }
