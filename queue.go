@@ -4,36 +4,37 @@ import "sync"
 
 type queue struct {
 	mutex *sync.Mutex
-	data  []TaskInterface
+	data  []interface{}
 }
 
 func newQueue() *queue {
 	return &queue{
 		mutex: &sync.Mutex{},
-		data:  make([]TaskInterface, 0),
+		data:  make([]interface{}, 0),
 	}
 }
 
-func (c *queue) push(t TaskInterface) {
+func (c *queue) push(t interface{}) {
 	c.mutex.Lock()
 	c.data = append(c.data, t)
 	c.mutex.Unlock()
 }
 
-func (c *queue) front() (t TaskInterface, ok bool) {
+func (c *queue) front() (t interface{}, ok bool) {
 	c.mutex.Lock()
 
 	length := len(c.data)
-	if length == 1 {
+	switch length {
+	case 0:
+		ok = false
+	case 1:
 		t = c.data[0]
 		ok = true
-		c.data = make([]TaskInterface, 0)
-	} else if length > 1 {
+		c.data = make([]interface{}, 0)
+	default:
 		t = c.data[0]
 		ok = true
 		c.data = c.data[1:]
-	} else {
-		ok = false
 	}
 
 	c.mutex.Unlock()
@@ -47,10 +48,10 @@ func (c *queue) len() int {
 	return length
 }
 
-func (c *queue) clear() []TaskInterface {
+func (c *queue) clear() []interface{} {
 	c.mutex.Lock()
 	data := c.data
-	c.data = make([]TaskInterface, 0)
+	c.data = make([]interface{}, 0)
 	c.mutex.Unlock()
 	return data
 }

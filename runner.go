@@ -25,26 +25,22 @@ type Runner struct {
 	interval time.Duration
 	ctx      context.Context
 
-	// wait for OnClose done
-	wait chan bool
-
-	// execute task error
-	OnError func(err error)
-
 	// syscall.SIGINT/SIGTERM, maybe you should backup data
-	OnClose func(data []TaskInterface)
+	OnClose func(data []interface{})
+
+	OnTask func(opt interface{})
 }
 
-// num: max concurrent number
+// num: max concurrent number per second, <=1000
 // interval: interval of checking new task
-func New(ctx context.Context, num int64, interval time.Duration) *Runner {
+func New(ctx context.Context, num int64) *Runner {
+	var interval = 1000 / num
 	o := &Runner{
 		queue:    newQueue(),
 		maxNum:   num,
 		curNum:   0,
-		interval: interval,
+		interval: time.Duration(interval) * time.Millisecond,
 		ctx:      ctx,
-		wait:     make(chan bool),
 	}
 	go o.run()
 
@@ -62,30 +58,24 @@ func (c *Runner) run() {
 				continue
 			}
 
-			if t, ok := c.queue.front(); ok {
+			if opt, ok := c.queue.front(); ok {
 				atomic.AddInt64(&c.curNum, 1)
 				go func() {
-					err := t.Do()()
-					atomic.AddInt64(&c.curNum, -1)
-					if err != nil && c.OnError != nil {
-						c.OnError(err)
+					if c.OnTask != nil {
+						c.OnTask(opt)
 					}
+					atomic.AddInt64(&c.curNum, -1)
 				}()
 			}
 		case <-c.ctx.Done():
 			if c.OnClose != nil {
 				c.OnClose(c.queue.clear())
 			}
-			c.wait <- true
-			return
 		}
 	}
 }
 
-func (c *Runner) Add(t TaskInterface) {
-	c.queue.push(t)
-}
-
-func (c *Runner) Wait() {
-	<-c.wait
+// add a task
+func (c *Runner) Add(opt interface{}) {
+	c.queue.push(opt)
 }
