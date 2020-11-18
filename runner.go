@@ -6,18 +6,6 @@ import (
 	"time"
 )
 
-type TaskInterface interface {
-	Do() func() error
-}
-
-type Task struct {
-	Work func() error
-}
-
-func (c *Task) Do() func() error {
-	return c.Work
-}
-
 type Runner struct {
 	queue    *queue
 	maxNum   int64
