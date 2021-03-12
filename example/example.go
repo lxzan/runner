@@ -1,28 +1,27 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"github.com/lxzan/runner"
 	"time"
 )
 
 func main() {
-	r := runner.New(context.Background(), 10)
-	r.OnClose = func(data []interface{}) {
-		println(fmt.Sprintf("rest tasks: %d", len(data)))
-	}
-
 	var t0 = time.Now().UnixNano()
-	r.OnTask = func(opt interface{}) {
+	r := runner.New(10, func(doc interface{}) {
 		var t1 = time.Now().UnixNano()
-		fmt.Printf("idx=%d, time=%dms\n", opt.(int), (t1-t0)/1000000)
-		time.Sleep(200 * time.Millisecond)
-	}
+		fmt.Printf("idx=%d, time=%dms\n", doc.(int), (t1-t0)/1000000)
+	})
+	r.Start()
 
 	for i := 0; i < 100; i++ {
-		r.Add(i)
+		r.Push(i)
 	}
+
+	go func() {
+		time.Sleep(3 * time.Second)
+		r.Stop()
+	}()
 
 	select {}
 }

@@ -2,53 +2,52 @@ package runner
 
 import "sync"
 
-type queue struct {
+type Queue struct {
 	mutex *sync.Mutex
 	data  []interface{}
 }
 
-func newQueue() *queue {
-	return &queue{
+func newQueue() *Queue {
+	return &Queue{
 		mutex: &sync.Mutex{},
 		data:  make([]interface{}, 0),
 	}
 }
 
-func (c *queue) push(t interface{}) {
+func (c *Queue) Push(eles ...interface{}) {
 	c.mutex.Lock()
-	c.data = append(c.data, t)
+	c.data = append(c.data, eles...)
 	c.mutex.Unlock()
 }
 
-func (c *queue) front() (t interface{}, ok bool) {
+func (c *Queue) pop() interface{} {
 	c.mutex.Lock()
 
 	length := len(c.data)
+	var result interface{}
 	switch length {
 	case 0:
-		ok = false
+		result = nil
 	case 1:
-		t = c.data[0]
-		ok = true
+		result = c.data[0]
 		c.data = make([]interface{}, 0)
 	default:
-		t = c.data[0]
-		ok = true
+		result = c.data[0]
 		c.data = c.data[1:]
 	}
 
 	c.mutex.Unlock()
-	return
+	return result
 }
 
-func (c *queue) len() int {
+func (c *Queue) Len() int {
 	c.mutex.Lock()
 	length := len(c.data)
 	c.mutex.Unlock()
 	return length
 }
 
-func (c *queue) clear() []interface{} {
+func (c *Queue) clear() []interface{} {
 	c.mutex.Lock()
 	data := c.data
 	c.data = make([]interface{}, 0)
